@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "Category": {
+      "title": "Category",
+      "description": "A budget category with a limit",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "budget": { "type": "number" },
+        "color": { "type": "string" },
+        "icon": { "type": "string" }
+      },
+      "required": ["name", "budget", "color", "icon"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "A single expense transaction",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "categoryId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "title": { "type": "string" },
+        "isEssential": { "type": "boolean" },
+        "isRecurring": { "type": "boolean" },
+        "recurringId": { "type": "string" }
+      },
+      "required": ["amount", "categoryId", "date", "title", "isEssential"]
+    },
+    "RecurringExpense": {
+      "title": "RecurringExpense",
+      "description": "An automation for expenses",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "categoryId": { "type": "string" },
+        "title": { "type": "string" },
+        "isEssential": { "type": "boolean" },
+        "period": { "enum": ["daily", "weekly", "monthly"] },
+        "startDate": { "type": "string", "format": "date" },
+        "lastProcessed": { "type": "string", "format": "date" }
+      },
+      "required": ["amount", "categoryId", "title", "isEssential", "period", "startDate"]
+    }
+  },
+  "firestore": {
+    "users/{userId}/categories": {
+      "schema": "Category",
+      "description": "User dynamic categories for budgeting"
+    },
+    "users/{userId}/expenses": {
+      "schema": "Expense",
+      "description": "Transaction log for a specific user"
+    },
+    "users/{userId}/recurringExpenses": {
+      "schema": "RecurringExpense",
+      "description": "Scheduled expense automations"
+    }
+  }
+}

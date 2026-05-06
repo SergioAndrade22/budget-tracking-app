@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidCategory(data) {
+      return data.keys().hasAll(['name', 'budget', 'color', 'icon']) &&
+             data.keys().size() == 4 &&
+             data.name is string && data.name.size() <= 64 &&
+             data.budget is number && data.budget >= 0 &&
+             data.color is string && data.color.matches('^#[A-Fa-f0-9]{6}$') &&
+             data.icon is string && data.icon.size() <= 32;
+    }
+
+    function isValidExpense(data) {
+      return data.keys().hasAll(['amount', 'categoryId', 'date', 'title', 'isEssential', 'isRecurring']) &&
+             (data.keys().size() == 6 || (data.keys().size() == 7 && data.keys().hasAll(['recurringId']))) &&
+             data.amount is number && data.amount >= 0 &&
+             data.categoryId is string && data.categoryId.size() <= 128 &&
+             data.date is string && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+             data.title is string && data.title.size() <= 128 &&
+             data.isEssential is bool &&
+             data.isRecurring is bool;
+    }
+
+    function isValidRecurringExpense(data) {
+      return data.keys().hasAll(['amount', 'categoryId', 'title', 'isEssential', 'period', 'startDate']) &&
+             (data.keys().size() == 6 || (data.keys().size() == 7 && data.keys().hasAll(['lastProcessed']))) &&
+             data.amount is number && data.amount >= 0 &&
+             data.categoryId is string && data.categoryId.size() <= 128 &&
+             data.title is string && data.title.size() <= 128 &&
+             data.isEssential is bool &&
+             data.period in ['daily', 'weekly', 'monthly'] &&
+             data.startDate is string && data.startDate.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    // --- Collection Routes ---
+
+    match /users/{userId} {
+      match /categories/{catId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(catId) && isValidCategory(incoming());
+        allow update: if isOwner(userId) && isValidCategory(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /expenses/{expId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(expId) && isValidExpense(incoming());
+        allow update: if isOwner(userId) && isValidExpense(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /recurringExpenses/{recId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(recId) && isValidRecurringExpense(incoming());
+        allow update: if isOwner(userId) && isValidRecurringExpense(incoming());
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

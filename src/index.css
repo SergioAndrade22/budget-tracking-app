@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-dark-bg: #0A0A0A;
+  --color-dark-surface: #0D0D0D;
+  --color-dark-card: #111111;
+  --color-dark-border: #262626;
+  --color-essential: #10B981;
+  --color-lifestyle: #F43F5E;
+}
+
+@layer base {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  html, body {
+    @apply antialiased overflow-x-hidden touch-pan-y bg-dark-bg text-[#E5E5E5];
+    -webkit-tap-highlight-color: transparent;
+  }
+}
