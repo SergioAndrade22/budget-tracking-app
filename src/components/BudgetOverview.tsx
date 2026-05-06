@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Category, Expense } from '../types';
 import { formatCurrency } from '../utils/format';
 import { startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
-import { Edit2, TrendingDown, Plus, LayoutGrid } from 'lucide-react';
+import { Edit2, TrendingDown, Plus, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import CategoryModal from './CategoryModal';
 
@@ -69,18 +69,27 @@ export default function BudgetOverview({
           </div>
           
           {isEditingBudget ? (
-            <form onSubmit={handleBudgetSubmit} className="flex items-center gap-2">
+            <form onSubmit={handleBudgetSubmit} className="flex items-center gap-1">
               <input
                 type="number"
                 autoFocus
                 value={tempBudget}
                 onChange={(e) => setTempBudget(e.target.value)}
-                className="bg-[#0D0D0D] border border-[#333] text-2xl font-light tracking-tight w-32 px-2 py-1 rounded outline-none focus:border-essential"
-                onBlur={() => setIsEditingBudget(false)}
+                className="bg-[#0D0D0D] border border-[#333] text-2xl font-light tracking-tight w-28 px-2 py-1 rounded outline-none focus:border-essential"
               />
-              <button type="submit" className="p-2 text-essential">
-                <Plus size={20} className="rotate-45" /> 
-              </button>
+              <div className="flex items-center">
+                <button type="submit" className="p-2 text-essential hover:bg-emerald-500/10 rounded-lg transition-colors" title="Save">
+                  <Check size={18} /> 
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setIsEditingBudget(false)}
+                  className="p-2 text-[#444] hover:text-lifestyle hover:bg-rose-500/10 rounded-lg transition-colors"
+                  title="Cancel"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </form>
           ) : (
             <p className="text-3xl font-light tracking-tight transition-all">{formatCurrency(targetBudget)}</p>
