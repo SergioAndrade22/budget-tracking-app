@@ -32,6 +32,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Create dummy config for build
+        run: |
+          if [ ! -f firebase-applet-config.json ]; then
+            echo '{"apiKey":""}' > firebase-applet-config.json
+          fi
+
       - name: Build
         run: npm run build
         env:

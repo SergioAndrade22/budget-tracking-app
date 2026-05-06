@@ -13,9 +13,10 @@ import { motion } from 'motion/react';
 interface DashboardProps {
   expenses: Expense[];
   categories: Category[];
+  targetBudget: number;
 }
 
-export default function Dashboard({ expenses, categories }: DashboardProps) {
+export default function Dashboard({ expenses, categories, targetBudget }: DashboardProps) {
   const currentMonthStart = startOfMonth(new Date());
   const currentMonthEnd = endOfMonth(new Date());
 
@@ -27,8 +28,7 @@ export default function Dashboard({ expenses, categories }: DashboardProps) {
   const essentialSpent = currentMonthExpenses.filter(e => e.isEssential).reduce((acc, e) => acc + e.amount, 0);
   const nonEssentialSpent = totalSpent - essentialSpent;
 
-  const totalBudget = categories.reduce((acc, c) => acc + c.budget, 0);
-  const budgetProgress = (totalSpent / totalBudget) * 100;
+  const budgetProgress = (totalSpent / targetBudget) * 100;
 
   const categoryData = categories.map(cat => {
     const spent = currentMonthExpenses
@@ -55,7 +55,7 @@ export default function Dashboard({ expenses, categories }: DashboardProps) {
         <div className="bg-[#111] p-5 rounded-2xl border border-[#222] flex flex-col justify-between h-[120px]">
           <p className="text-[10px] font-black text-[#666] uppercase tracking-[0.2em]">Balance</p>
           <div className="mt-auto">
-             <p className="text-2xl font-light tracking-tight">{formatCurrency(Math.max(0, totalBudget - totalSpent)).split('.')[0]}<span className="text-[#444] text-sm">.{formatCurrency(Math.max(0, totalBudget - totalSpent)).split('.')[1] || '00'}</span></p>
+             <p className="text-2xl font-light tracking-tight">{formatCurrency(Math.max(0, targetBudget - totalSpent)).split('.')[0]}<span className="text-[#444] text-sm">.{formatCurrency(Math.max(0, targetBudget - totalSpent)).split('.')[1] || '00'}</span></p>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function Dashboard({ expenses, categories }: DashboardProps) {
         </div>
         <div className="flex justify-between mt-3 text-[9px] text-[#444] font-mono">
           <span>{formatCurrency(totalSpent)}</span>
-          <span>{formatCurrency(totalBudget)} LIMIT</span>
+          <span>{formatCurrency(targetBudget)} LIMIT</span>
         </div>
       </div>
 

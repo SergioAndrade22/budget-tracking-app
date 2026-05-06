@@ -41,6 +41,7 @@ export interface BudgetData {
   expenses: Expense[];
   categories: Category[];
   recurringExpenses: RecurringExpense[];
+  targetBudget: number;
 }
 
 export const DEFAULT_CATEGORIES: Category[] = [

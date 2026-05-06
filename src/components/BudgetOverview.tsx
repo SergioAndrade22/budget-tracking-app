@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Category, Expense } from '../types';
 import { formatCurrency } from '../utils/format';
 import { startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
@@ -14,14 +14,26 @@ import CategoryModal from './CategoryModal';
 interface BudgetOverviewProps {
   expenses: Expense[];
   categories: Category[];
+  targetBudget: number;
   updateCategory: (cat: Category) => void;
   addCategory: (cat: Omit<Category, 'id'>) => void;
   deleteCategory: (id: string) => void;
+  updateTargetBudget: (amount: number) => void;
 }
 
-export default function BudgetOverview({ expenses, categories, updateCategory, addCategory, deleteCategory }: BudgetOverviewProps) {
+export default function BudgetOverview({ 
+  expenses, 
+  categories, 
+  targetBudget,
+  updateCategory, 
+  addCategory, 
+  deleteCategory,
+  updateTargetBudget
+}: BudgetOverviewProps) {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditingBudget, setIsEditingBudget] = useState(false);
+  const [tempBudget, setTempBudget] = useState(targetBudget.toString());
 
   const currentMonthStart = startOfMonth(new Date());
   const currentMonthEnd = endOfMonth(new Date());
@@ -30,14 +42,49 @@ export default function BudgetOverview({ expenses, categories, updateCategory, a
     isWithinInterval(parseISO(e.date), { start: currentMonthStart, end: currentMonthEnd })
   );
 
-  const totalBudget = categories.reduce((acc, c) => acc + c.budget, 0);
+  const handleBudgetSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(tempBudget);
+    if (!isNaN(amount) && amount >= 0) {
+      updateTargetBudget(amount);
+      setIsEditingBudget(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#111] p-6 rounded-2xl border border-[#222] flex items-center justify-between">
-        <div>
-          <h2 className="text-[#666] font-black text-[10px] uppercase tracking-[0.2em] mb-2">Target Monthly Spend</h2>
-          <p className="text-3xl font-light tracking-tight">{formatCurrency(totalBudget)}</p>
+      <div className="bg-[#111] p-6 rounded-2xl border border-[#222] flex items-center justify-between group">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="text-[#666] font-black text-[10px] uppercase tracking-[0.2em]">Target Monthly Spend</h2>
+            <button 
+              onClick={() => {
+                setTempBudget(targetBudget.toString());
+                setIsEditingBudget(true);
+              }}
+              className="opacity-0 group-hover:opacity-100 p-1 text-[#444] hover:text-[#AAA] transition-all"
+            >
+              <Edit2 size={12} />
+            </button>
+          </div>
+          
+          {isEditingBudget ? (
+            <form onSubmit={handleBudgetSubmit} className="flex items-center gap-2">
+              <input
+                type="number"
+                autoFocus
+                value={tempBudget}
+                onChange={(e) => setTempBudget(e.target.value)}
+                className="bg-[#0D0D0D] border border-[#333] text-2xl font-light tracking-tight w-32 px-2 py-1 rounded outline-none focus:border-essential"
+                onBlur={() => setIsEditingBudget(false)}
+              />
+              <button type="submit" className="p-2 text-essential">
+                <Plus size={20} className="rotate-45" /> 
+              </button>
+            </form>
+          ) : (
+            <p className="text-3xl font-light tracking-tight transition-all">{formatCurrency(targetBudget)}</p>
+          )}
         </div>
         <div className="w-12 h-12 bg-dark-surface rounded-xl border border-[#222] flex items-center justify-center text-essential">
           <TrendingDown size={24} />

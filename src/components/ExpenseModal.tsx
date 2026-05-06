@@ -141,22 +141,22 @@ export default function ExpenseModal({ expense, onClose, onAddExpense, onUpdateE
               </div>
             </div>
 
-            {/* Toggles - only show for new expense */}
-            {!expense && (
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setIsEssential(!isEssential)}
-                  className={`flex flex-col gap-2 p-4 rounded-xl border transition-all ${
-                    isEssential ? 'border-essential bg-emerald-500/5' : 'border-[#222] bg-transparent opacity-40'
-                  }`}
-                >
-                  <div className={`p-1 w-fit rounded ${isEssential ? 'bg-essential text-black' : 'bg-[#222] text-[#444]'}`}>
-                    <Check size={12} strokeWidth={4} />
-                  </div>
-                  <span className="text-[8px] font-black uppercase tracking-widest leading-none">Essential</span>
-                </button>
+            {/* Toggles */}
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setIsEssential(!isEssential)}
+                className={`flex flex-col gap-2 p-4 rounded-xl border transition-all ${
+                  isEssential ? 'border-essential bg-emerald-500/5' : 'border-[#222] bg-transparent opacity-40'
+                }`}
+              >
+                <div className={`p-1 w-fit rounded ${isEssential ? 'bg-essential text-black' : 'bg-[#222] text-[#444]'}`}>
+                  <Check size={12} strokeWidth={4} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest leading-none">Essential</span>
+              </button>
 
+              {!expense && (
                 <button
                   type="button"
                   onClick={() => setIsRecurring(!isRecurring)}
@@ -169,8 +169,8 @@ export default function ExpenseModal({ expense, onClose, onAddExpense, onUpdateE
                   </div>
                   <span className="text-[8px] font-black uppercase tracking-widest leading-none">Recurring</span>
                 </button>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Recurring Options - only show for new expense */}
             <AnimatePresence>

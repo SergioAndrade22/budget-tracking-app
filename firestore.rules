@@ -79,6 +79,14 @@ service cloud.firestore {
         allow update: if isOwner(userId) && isValidRecurringExpense(incoming());
         allow delete: if isOwner(userId);
       }
+
+      match /config/budget {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && 
+                      incoming().keys().hasOnly(['amount']) &&
+                      incoming().amount is number && 
+                      incoming().amount >= 0;
+      }
     }
   }
 }

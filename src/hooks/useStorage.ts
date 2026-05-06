@@ -22,12 +22,14 @@ export function useStorage() {
         expenses: parsed.expenses || [],
         categories: parsed.categories || DEFAULT_CATEGORIES,
         recurringExpenses: parsed.recurringExpenses || [],
+        targetBudget: parsed.targetBudget || 2150,
       };
     }
     return {
       expenses: [],
       categories: DEFAULT_CATEGORIES,
       recurringExpenses: [],
+      targetBudget: 2150,
     };
   });
 
@@ -46,16 +48,19 @@ export function useStorage() {
     const expRef = collection(db, `users/${userId}/expenses`);
     const catRef = collection(db, `users/${userId}/categories`);
     const recRef = collection(db, `users/${userId}/recurringExpenses`);
+    const budgetRef = doc(db, `users/${userId}/config/budget`);
 
     let expenses: Expense[] = [];
     let categories: Category[] = [];
     let recurringExpenses: RecurringExpense[] = [];
+    let targetBudget = 2150;
 
     const syncState = () => {
       setData({
         expenses: expenses.sort((a, b) => b.date.localeCompare(a.date)),
         categories: categories.length > 0 ? categories : DEFAULT_CATEGORIES,
-        recurringExpenses
+        recurringExpenses,
+        targetBudget
       });
     };
 
@@ -73,6 +78,13 @@ export function useStorage() {
       recurringExpenses = snap.docs.map(d => ({ ...d.data(), id: d.id } as RecurringExpense));
       syncState();
     }, (err) => handleFirestoreError(err, OperationType.LIST, `users/${userId}/recurringExpenses`));
+
+    const unsubBudget = onSnapshot(budgetRef, (snap) => {
+      if (snap.exists()) {
+        targetBudget = snap.data().amount || 2150;
+        syncState();
+      }
+    });
 
     // Initial Migration: If Firestore is empty but Local is not, migrate
     if (isInitialSync.current) {
@@ -109,6 +121,7 @@ export function useStorage() {
       unsubExp();
       unsubCat();
       unsubRec();
+      unsubBudget();
     };
   }, [user]);
 
@@ -274,6 +287,22 @@ export function useStorage() {
     }
   }, [user]);
 
+  const updateTargetBudget = useCallback(async (amount: number) => {
+    if (user) {
+      try {
+        await setDoc(doc(db, `users/${user.uid}/config/budget`), { amount });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}/config/budget`);
+      }
+    } else {
+      setData(prev => {
+        const next = { ...prev, targetBudget: amount };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        return next;
+      });
+    }
+  }, [user]);
+
   // Process recurring expenses
   useEffect(() => {
     if (data.recurringExpenses.length === 0) return;
@@ -351,6 +380,7 @@ export function useStorage() {
     deleteCategory,
     updateCategory,
     addRecurringExpense,
-    deleteRecurringExpense
+    deleteRecurringExpense,
+    updateTargetBudget
   };
 }
