@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Category, Expense } from '../types';
 import { formatCurrency } from '../utils/format';
 import { startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
-import { Wallet, TrendingUp } from 'lucide-react';
+import { Wallet, TrendingUp, Layers, LayoutGrid } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface DashboardProps {
@@ -17,6 +18,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ expenses, categories, targetBudget }: DashboardProps) {
+  const [viewType, setViewType] = useState<'essential' | 'category'>('essential');
   const currentMonthStart = startOfMonth(new Date());
   const currentMonthEnd = endOfMonth(new Date());
 
@@ -82,21 +84,43 @@ export default function Dashboard({ expenses, categories, targetBudget }: Dashbo
       {/* Charts Section */}
       <div className="space-y-6">
         <div className="bg-[#111] p-6 rounded-2xl border border-[#222]">
-          <p className="text-[10px] font-black text-[#666] uppercase tracking-[0.2em] mb-8">Allocation</p>
+          <div className="flex justify-between items-center mb-8">
+            <p className="text-[10px] font-black text-[#666] uppercase tracking-[0.2em]">Allocation</p>
+            <div className="flex bg-[#0D0D0D] p-1 rounded-lg border border-[#222]">
+              <button 
+                onClick={() => setViewType('essential')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
+                  viewType === 'essential' ? 'bg-[#222] text-white shadow-lg' : 'text-[#444] hover:text-[#666]'
+                }`}
+              >
+                <Layers size={10} />
+                <span className="text-[8px] font-black uppercase tracking-widest">Logic</span>
+              </button>
+              <button 
+                onClick={() => setViewType('category')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
+                  viewType === 'category' ? 'bg-[#222] text-white shadow-lg' : 'text-[#444] hover:text-[#666]'
+                }`}
+              >
+                <LayoutGrid size={10} />
+                <span className="text-[8px] font-black uppercase tracking-widest">Focus</span>
+              </button>
+            </div>
+          </div>
           <div className="h-56 relative group">
             <ResponsiveContainer width="100%" height="100%" debounce={100} minHeight={0} minWidth={0}>
               <PieChart>
                 <Pie
-                  data={essentialData}
+                  data={viewType === 'essential' ? essentialData : categoryData}
                   cx="50%"
                   cy="50%"
                   innerRadius={65}
                   outerRadius={85}
-                  paddingAngle={8}
+                  paddingAngle={viewType === 'essential' ? 8 : 4}
                   dataKey="value"
                   stroke="none"
                 >
-                  {essentialData.map((entry, index) => (
+                  {(viewType === 'essential' ? essentialData : categoryData).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -116,12 +140,16 @@ export default function Dashboard({ expenses, categories, targetBudget }: Dashbo
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-[8px] text-[#666] uppercase tracking-widest font-black">Status</span>
-              <span className="text-xs font-mono text-white">{budgetProgress > 100 ? 'OVER' : 'OK'}</span>
+              <span className="text-[8px] text-[#666] uppercase tracking-widest font-black">
+                {viewType === 'essential' ? 'Status' : 'Type'}
+              </span>
+              <span className="text-xs font-mono text-white">
+                {viewType === 'essential' ? (budgetProgress > 100 ? 'OVER' : 'OK') : categoryData.length}
+              </span>
             </div>
           </div>
-          <div className="flex justify-center gap-8 mt-4">
-            {essentialData.map(item => (
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 mt-6">
+            {(viewType === 'essential' ? essentialData : categoryData).map(item => (
               <div key={item.name} className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
                 <span className="text-[9px] font-black uppercase tracking-widest text-[#666]">{item.name}</span>
